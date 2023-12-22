@@ -35,6 +35,10 @@ tru = Tru()
 
 #load_dotenv()
 
+project_id = "vital-future-408219"
+location = "us-central1"
+vertexai.init(project=project_id, location=location)
+
 # Use Streamlit secrets for sensitive information
 pinecone_api_key = st.secrets["PINECONE_API_KEY"]
 pinecone_env = st.secrets["PINECONE_Environment"]
