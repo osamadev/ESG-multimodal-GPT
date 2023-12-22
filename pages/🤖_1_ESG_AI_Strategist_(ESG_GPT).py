@@ -38,20 +38,20 @@ tru = Tru()
 import google.auth
 
 # Retrieve the JSON key file path from Streamlit Secrets
-key_path = st.secrets["GOOGLE_KEY_PATH"]
+# key_path = st.secrets["GOOGLE_KEY_PATH"]
 
-# Set the environment variable to point to the key file
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
+# # Set the environment variable to point to the key file
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
 
-# Authenticate using the key file
-credentials, project_id = google.auth.default()
+# # Authenticate using the key file
+# credentials, project_id = google.auth.default()
 
 # Use Streamlit secrets for sensitive information
 pinecone_api_key = st.secrets["PINECONE_API_KEY"]
 pinecone_env = st.secrets["PINECONE_ENV"]
 
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-# os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 
 project_id = "vital-future-408219"
 location = "us-central1"
