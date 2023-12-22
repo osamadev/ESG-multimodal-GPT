@@ -41,7 +41,7 @@ vertexai.init(project=project_id, location=location)
 
 # Use Streamlit secrets for sensitive information
 pinecone_api_key = st.secrets["PINECONE_API_KEY"]
-pinecone_env = st.secrets["PINECONE_Environment"]
+pinecone_env = st.secrets["PINECONE_ENV"]
 
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 
