@@ -94,7 +94,7 @@ fonttools==4.46.0
 fqdn==1.5.1
 frozendict==2.3.10
 frozenlist==1.4.0
-fsspec==2023.12.2
+fsspec
 gitdb==4.0.11
 google-ai-generativelanguage==0.4.0
 google-api-core==2.15.0
