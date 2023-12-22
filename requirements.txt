@@ -298,7 +298,6 @@ python-slugify==8.0.1
 pytorch-lightning==2.1.2
 pytorch-metric-learning==2.4.1
 pytube==15.0.0
-pywinpty==2.0.12
 pyzmq==25.1.1
 qtconsole==5.5.1
 rapidfuzz==3.5.2
