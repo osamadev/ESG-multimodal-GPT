@@ -112,11 +112,10 @@ google-generativeai==0.3.1
 google-resumable-media==2.7.0
 googleapis-common-protos==1.56.4
 greenlet==3.0.1
-grep==0.3.2
 grpc-gateway-protoc-gen-openapiv2==0.1.0
 grpc-google-iam-v1==0.13.0
-grpcio==1.60.0
-grpcio-status==1.60.0
+grpcio
+grpcio-status
 h11==0.14.0
 h2==3.2.0
 hnswlib==0.8.0
