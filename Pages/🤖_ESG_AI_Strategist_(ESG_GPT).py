@@ -11,9 +11,10 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.vectorstores import Pinecone
+import re
 import numpy as np
 import os
-import re
+
 import pinecone
 from pptx import Presentation
 from pptx.util import Inches, Pt
