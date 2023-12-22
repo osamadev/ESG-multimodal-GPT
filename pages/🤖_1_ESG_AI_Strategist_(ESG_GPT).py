@@ -35,17 +35,16 @@ tru = Tru()
 
 #load_dotenv()
 
-project_id = "vital-future-408219"
-location = "us-central1"
-vertexai.init(project=project_id, location=location)
-
 # Use Streamlit secrets for sensitive information
 pinecone_api_key = st.secrets["PINECONE_API_KEY"]
 pinecone_env = st.secrets["PINECONE_ENV"]
 
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+
+project_id = "vital-future-408219"
+location = "us-central1"
+vertexai.init(project=project_id, location=location)
 
 (f_groundedness, f_qa_relevance, f_context_relevance, f_hate, f_violent, f_selfharm, f_maliciousness) = \
     load_feedback_functions()
