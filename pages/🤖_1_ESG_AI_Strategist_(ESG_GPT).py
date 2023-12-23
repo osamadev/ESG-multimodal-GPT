@@ -35,16 +35,15 @@ tru = Tru()
 
 #load_dotenv()
 
-import google.auth
+from google.oauth2 import service_account
+
+credentials = service_account.Credentials.from_service_account_info(st.secrets.connections_gcs)
 
 # Retrieve the JSON key file path from Streamlit Secrets
 # key_path = st.secrets["GOOGLE_KEY_PATH"]
 
 # # Set the environment variable to point to the key file
 # os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
-
-# # Authenticate using the key file
-# credentials, project_id = google.auth.default()
 
 # Use Streamlit secrets for sensitive information
 pinecone_api_key = st.secrets["PINECONE_API_KEY"]
@@ -55,7 +54,7 @@ os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 
 project_id = "vital-future-408219"
 location = "us-central1"
-vertexai.init(project=project_id, location=location)
+vertexai.init(project=project_id, location=location, credentials=credentials)
 
 (f_groundedness, f_qa_relevance, f_context_relevance, f_hate, f_violent, f_selfharm, f_maliciousness) = \
     load_feedback_functions()
@@ -246,7 +245,7 @@ def create_agent():
     llm_tool = Tool(
         name='Language Model',
         func=llm_chain.run,
-        description='use this tool for general purpose queries and logic')
+        description='Use this tool for general purpose queries and logic')
     
     tools.append(llm_tool)
 
@@ -265,7 +264,6 @@ def generate(image_data, mime_type, combined_prompt):
     
     if image_data is not None:
         image1 = Part.from_data(data=base64.b64decode(image_data), mime_type=mime_type)
-        # Initialize the model outside of the generate function to avoid re-loading it on each interaction
         model = GenerativeModel("gemini-pro-vision")
         responses = model.generate_content(
             [image1, combined_prompt],
