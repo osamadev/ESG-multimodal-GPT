@@ -1,3 +1,5 @@
 .streamlit/secrets.toml
-
-.blob
+pages/🤖_2_ESG_Multimodal_GPT.py
+utils/
+.env
+Tools/

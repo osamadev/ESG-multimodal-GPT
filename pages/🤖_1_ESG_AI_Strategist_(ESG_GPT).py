@@ -1,12 +1,7 @@
 import vertexai
 from vertexai.preview.generative_models import GenerativeModel, Part
-import whisper
-from audiorecorder import audiorecorder as st_audiorecorder
-
-from st_audiorec import st_audiorec
 import streamlit as st
 import base64
-
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
 from langchain.memory import ConversationSummaryBufferMemory
@@ -14,10 +9,9 @@ from langchain.vectorstores import Pinecone
 import re
 import numpy as np
 import os
-
 import pinecone
 from pptx import Presentation
-from pptx.util import Inches, Pt
+from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 import textwrap
 import io
@@ -30,6 +24,8 @@ from dotenv import load_dotenv
 from feedback_functions import load_feedback_functions
 from trulens_eval import TruChain, Feedback, Tru
 from trulens_eval.schema import FeedbackResult
+from openai import OpenAI
+from io import BytesIO
 tru = Tru()
 # tru.reset_database()
 
@@ -39,13 +35,6 @@ from google.oauth2 import service_account
 
 credentials = service_account.Credentials.from_service_account_info(st.secrets.connections_gcs)
 
-# Retrieve the JSON key file path from Streamlit Secrets
-# key_path = st.secrets["GOOGLE_KEY_PATH"]
-
-# # Set the environment variable to point to the key file
-# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
-
-# Use Streamlit secrets for sensitive information
 pinecone_api_key = st.secrets["PINECONE_API_KEY"]
 pinecone_env = st.secrets["PINECONE_ENV"]
 
@@ -73,23 +62,28 @@ class PresentationCreationTool(Tool):
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a PowerPoint expert and designer."},
-                {"role": "user", "content": f"Format and generate PowerPoint slides using this context:\n{conversation_history}\nDivide the slides logically with titles in the format 'slide 1: Title, slide 2: Title ...etc.'"}
+                {"role": "system", "content": "You are a PowerPoint expert, designer, content organizer, and slides generator."},
+                {"role": "user", "content": f"""Format and generate PowerPoint slides using this context:\n{conversation_history}\n
+                 Prepare the slides from the given conversation history and break the content logically according to the topic into slides, 
+                 each slide should start with a title in that format "slide 1: Title of slide 1" in a separate line. 
+                 The title of each slide should be in the required format and in a new line"""}
             ],
-            max_tokens=3500,
-            temperature=0.3
+            max_tokens=2000,
+            temperature=0.5
         )
-        generated_content = response['choices'][0]['message']['content']
+        generated_content = response.choices[0].message.content
 
         # Create a presentation object
         prs = Presentation()
 
-        # Define a professional and sustainability-themed design
-        bg_color = RGBColor(232, 245, 233)  # Light green background
-        font_color = RGBColor(30, 136, 229)  # Blue font color for contrast
+        # Define a professional and elegant design
+        bg_color = RGBColor(245, 245, 245)  # Light grey background for elegance
+        title_font_color = RGBColor(0, 51, 102)  # Dark blue for titles
+        content_font_color = RGBColor(32, 32, 32)  # Almost black for content
+        font_family = "Arial"  # Professional font family
 
-        # Extracting slides from the generated content
-        slides = re.findall(r'slide \d+: (.*?)(?=slide \d+:|$)', generated_content, re.DOTALL)
+        # Updated regex to correctly extract slides
+        slides = re.findall(r'Slide \d+: (.*?)\n(?=Slide \d+:|$)', generated_content, re.DOTALL)
 
         for slide in slides:
             # Split title and content
@@ -105,24 +99,52 @@ class PresentationCreationTool(Tool):
             fill.solid()
             fill.fore_color.rgb = bg_color
 
-            # Add title and content
+            # Add title
             title_shape = slide.shapes.add_textbox(Inches(1), Inches(0.5), Inches(8), Inches(1))
-            title_shape.text = title.strip()
-            title_shape.text_frame.paragraphs[0].font.size = Pt(36)
-            title_shape.text_frame.paragraphs[0].font.color.rgb = font_color
+            title_frame = title_shape.text_frame
+            title_frame.clear()  # Clear any existing content in the frame
+            title_frame.word_wrap = True
+            title_p = title_frame.add_paragraph()
+            title_p.text = title.strip()
+            title_p.font.size = Pt(36)
+            title_p.font.color.rgb = title_font_color
+            title_p.font.name = font_family
 
+            # Add content as bullet list
             content_shape = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(5))
-            content_shape.text = textwrap.fill(content.strip(), 50)
-            for paragraph in content_shape.text_frame.paragraphs:
-                paragraph.font.size = Pt(24)
-                paragraph.font.color.rgb = font_color
+            content_frame = content_shape.text_frame
+            content_frame.clear()  # Clear any existing content in the frame
+            content_frame.word_wrap = True
+            for line in content.split('\n'):
+                p = content_frame.add_paragraph()
+                p.text = line.strip()
+                p.level = 0  # Adjust as needed for nested bullets
+                p.font.size = Pt(20)
+                p.font.color.rgb = content_font_color
+                p.font.name = font_family
+
+            # Adjust margins
+            content_frame.margin_left = Emu(457200)  # Approx. 0.5 inch
+            content_frame.margin_right = Emu(457200)  # Approx. 0.5 inch
+            content_frame.margin_top = Emu(228600)  # Approx. 0.25 inch
+            content_frame.margin_bottom = Emu(228600)  # Approx. 0.25 inch
 
         # Save to a BytesIO object
         ppt_io = io.BytesIO()
         prs.save(ppt_io)
         ppt_io.seek(0)
 
-        return ppt_io
+        return ppt_io, generated_content
+    
+def preview_presentation_content(generated_content):
+    slides = re.findall(r'Slide \d+: (.*?)\n(?=Slide \d+:|$)', generated_content, re.DOTALL)
+    expander_title = "**📑 Preview Slides Content**"  
+    with st.sidebar.expander(expander_title, expanded=True):
+        for i, slide in enumerate(slides, 1):
+            title, content = slide.split('\n', 1)
+            st.subheader(f"Slide {i}: {title.strip()}")
+            st.write(content.strip())
+            st.markdown("---")
 
 # Initialize the tool
 presentation_tool = PresentationCreationTool(
@@ -166,12 +188,8 @@ class ImageExplanationTool(Tool):
 # Initialize your ImageExplanationTool
 image_explanation_tool = ImageExplanationTool(
     name="Image Explanation Tool",
-    description="Explains or describes images based on user prompts.",
-    
+    description="Explains or describes images based on user prompts.", 
 )
-
-from langchain.agents import Tool
-from openai import OpenAI
 
 class DalleImageGenerationTool(Tool):
     def __init__(self, name, description):
@@ -181,7 +199,7 @@ class DalleImageGenerationTool(Tool):
         try:
             client = OpenAI()
             response = client.images.generate(
-                model="dall-e-2",
+                model="dall-e-3",
                 prompt=prompt,
                 size="1024x1024",
                 quality="standard",
@@ -253,7 +271,7 @@ def create_agent():
 
     tools.append(image_generation_tool)
 
-    # tools.append(presentation_tool)
+    tools.append(presentation_tool)
 
     return initialize_agent(agent='chat-conversational-react-description', tools=tools, llm=llm,
                             verbose=True, max_iterations=3, early_stopping_method='generate',
@@ -316,23 +334,24 @@ st.set_page_config(page_title="🌱 ESG AI Strategist", page_icon="🌍")
 
 # Sidebar
 with st.sidebar:
-    st.markdown("## ESG GPT")
+    st.markdown("## ESG Multimodal GPT")
     st.write("Navigate the path to sustainability with ESG AI Strategist App 🚀💼, where advanced GPT technology meets eco-conscious business strategies 🌱📊.")
     st.markdown("[TruLens Dashboard](http://localhost:8088)", unsafe_allow_html=True) 
 
     # Button to generate PowerPoint slides
-    if st.button('Generate PowerPoint Slides'):
+    if st.button('Generate Slides'):
         if 'history' in st.session_state and st.session_state['history']:
             conversation_history = " ".join([text for _, text in st.session_state['history']])
-            ppt_file = presentation_tool.run(conversation_history)
+            ppt_file, generated_content = presentation_tool.run(conversation_history)
             st.sidebar.download_button(
-                label="Download PowerPoint Presentation",
+                label="Download Slides",
                 data=ppt_file,
                 file_name="conversation_presentation.pptx",
                 mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
             )
+            preview_presentation_content(generated_content)
         else:
-            st.sidebar.write("No conversation history to generate presentation.")
+            st.sidebar.info("No conversation history to generate presentation.")
 
 
 # Title with emojis
@@ -399,5 +418,3 @@ with st.expander("📜 Conversation History", expanded=True):
             st.success(model_response)
 
         st.markdown("---")
-
-tru.run_dashboard(port=8088)
