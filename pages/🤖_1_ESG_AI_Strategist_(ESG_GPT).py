@@ -301,16 +301,16 @@ agent, qa_chain = create_agent()
 def generate_response(prompt):
     try:
         response = agent({"input": prompt})
-        with tru_recorder as recording:
-            llm_response = qa_chain.invoke(prompt)
+        # with tru_recorder as recording:
+        #     llm_response = qa_chain.invoke(prompt)
     except Exception:
         return "You hit the maximum qouta per minute, please try after one minute."
     
     return response["output"]
 
-tru_recorder = TruChain(qa_chain,
-    app_id='ESG-GPT',
-    feedbacks=[f_qa_relevance, f_context_relevance, f_groundedness, f_hate, f_violent, f_selfharm, f_maliciousness])
+# tru_recorder = TruChain(qa_chain,
+#     app_id='ESG-GPT',
+#     feedbacks=[f_qa_relevance, f_context_relevance, f_groundedness, f_hate, f_violent, f_selfharm, f_maliciousness])
 
 # Streamlit UI
 st.set_page_config(page_title="🌱 ESG AI Strategist", page_icon="🌍")
