@@ -26,9 +26,6 @@ from trulens_eval import TruChain, Feedback, Tru
 from trulens_eval.schema import FeedbackResult
 from openai import OpenAI
 from io import BytesIO
-tru = Tru()
-# tru.reset_database()
-
 #load_dotenv()
 
 from google.oauth2 import service_account
@@ -44,10 +41,6 @@ os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 project_id = "vital-future-408219"
 location = "us-central1"
 vertexai.init(project=project_id, location=location, credentials=credentials)
-
-(f_groundedness, f_qa_relevance, f_context_relevance, f_hate, f_violent, f_selfharm, f_maliciousness) = \
-    load_feedback_functions()
-
 
 class PresentationCreationTool(Tool):
     def __init__(self, name, description):
@@ -269,7 +262,7 @@ def create_agent():
 
     tools.append(image_explanation_tool)
 
-    tools.append(image_generation_tool)
+    # tools.append(image_generation_tool)
 
     tools.append(presentation_tool)
 
@@ -324,19 +317,38 @@ def generate_response(prompt):
     
     return response["output"]
 
-# tru_recorder = TruChain(qa_chain,
-#     app_id='ESG-GPT',
-#     feedbacks=[f_qa_relevance, f_context_relevance, f_groundedness, f_hate, f_violent, f_selfharm, f_maliciousness])
+def eval_gemini_completions():
+    tru = Tru()
+    tru.reset_database()
+    # Initialize TruChain with qa_chain and feedback functions
+    (f_groundedness, f_qa_relevance, f_context_relevance, f_hate, f_violent, f_selfharm, f_maliciousness) = \
+    load_feedback_functions()
+    tru_recorder = TruChain(qa_chain,
+                            app_id='ESG-GPT',
+                            feedbacks=[f_qa_relevance, f_context_relevance, f_groundedness, f_hate, f_violent, 
+                                       f_selfharm, f_maliciousness])
+    # Read questions from a file
+    with open('./eval_questions.txt', 'r') as file:
+        questions = file.readlines()
+    # Iterate over questions and run qr.run for each
+    for question in questions:
+        question = question.strip() 
+        #response = qa_chain.run(question) 
+        tru_recorder(question)
+    tru.run_dashboard(port=8088)
 
 # Streamlit UI
 st.set_page_config(page_title="🌱 ESG AI Strategist", page_icon="🌍")
-
 
 # Sidebar
 with st.sidebar:
     st.markdown("## ESG Multimodal GPT")
     st.write("Navigate the path to sustainability with ESG AI Strategist App 🚀💼, where advanced GPT technology meets eco-conscious business strategies 🌱📊.")
-    st.markdown("[TruLens Dashboard](http://localhost:8088)", unsafe_allow_html=True) 
+    st.markdown("[TruLens Dashboard](https://esg-multimodal-gpt.streamlit.app/2_TruLens_Evaluation_Results)", unsafe_allow_html=True) 
+
+    if st.button("Run TruLens Eval"):
+        eval_gemini_completions()
+        st.sidebar.success("TruLens eval has been executed successfully!")
 
     # Button to generate PowerPoint slides
     if st.button('Generate Slides'):
@@ -352,7 +364,6 @@ with st.sidebar:
             preview_presentation_content(generated_content)
         else:
             st.sidebar.info("No conversation history to generate presentation.")
-
 
 # Title with emojis
 st.title("🌱 ESG AI Strategist 🤖")

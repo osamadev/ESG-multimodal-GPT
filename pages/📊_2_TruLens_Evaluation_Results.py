@@ -1,13 +1,13 @@
 import streamlit as st
 
 # Streamlit page configuration
-st.set_page_config(page_title="🚀 Gemini LLM Evaluation with RAG Metrics", layout="wide")
+st.set_page_config(page_title="📊 Gemini LLM Evaluation with RAG Metrics using TruLens Evals 🌟", layout="wide")
 
-def display_markdown_with_image_placeholders():
-    markdown_content = """
-    # 🌟 Gemini LLM Evaluation Results with RAG Metrics
+def display_content():
+    st.markdown("""
+    # 📊 Gemini LLM Evaluation using TruLens Evals based on RAG triad of metrics
 
-    This document presents the evaluation results of the Gemini Language Model (LLM) using the Retrieval Augmented Generation (RAG) triad of metrics. These metrics are crucial for assessing the relevancy of the model's answers to user prompts.
+    This document presents the evaluation results of the Gemini Language Model (LLM) using TruLens Evals based on the Retrieval Augmented Generation (RAG) triad of metrics. These metrics are crucial for assessing the relevancy of the model's answers to user prompts.
 
     ## 📊 Overview
 
@@ -30,36 +30,51 @@ def display_markdown_with_image_placeholders():
     ### 3️⃣ Overall Response Coherence
     - **Description**: Evaluates how well the generated response integrates the retrieved information coherently.
     - **Importance**: Ensures that the response is not only accurate but also contextually appropriate and coherent.
+    """)
 
-    ## 📸 Dashboard Screenshots
+    st.markdown("## 📸 Dashboard Screenshots")
+    image_paths = [
+        "./images/trulens_eval_dashboard.png",
+        "./images/truelens_eval_01.png",
+        "./images/truelens_eval_02.png",
+        "./images/truelens_eval_03.png",
+        "./images/truelens_eval_04.png",
+        "./images/truelens_eval_05.png",
+        "./images/truelens_eval_06.png"
+    ]
 
-    1. **Screenshot 1: Relevance of Retrieved Documents**
-       ![Relevance of Retrieved Documents](path_or_url_to_screenshot_1)
+    for idx, path in enumerate(image_paths, start=1):
+        st.markdown(f"### Screenshot {idx}")
+        st.image(path, use_column_width=True)
+        st.markdown("---")
 
-    2. **Screenshot 2: Quality of Answer Generation**
-       ![Quality of Answer Generation](path_or_url_to_screenshot_2)
-
-    3. **Screenshot 3: Overall Response Coherence**
-       ![Overall Response Coherence](path_or_url_to_screenshot_3)
-
+    st.markdown("""
     ## 📝 Key Findings and Insights
 
-    (Provide a summary of key findings and insights here)
+   Based on the RAG evaluation of the Gemini LLM, several key findings have emerged:
+
+    - **High Relevance in Document Retrieval**: The Gemini LLM showed a strong ability to retrieve documents highly relevant to the user prompts, indicating robust understanding of query context.
+    - **Varied Performance in Answer Generation**: While the LLM was often accurate in generating answers, some responses lacked specificity or depth, suggesting room for improvement in leveraging retrieved information.
+    - **Contextual Coherence**: The overall coherence of responses was good, but there were occasional instances where the integration of retrieved information could be more seamless.
+    - **Speed and Efficiency**: The response time was generally efficient, though optimization could further enhance the user experience.
+
+    These insights point to a robust foundation in the Gemini LLM's retrieval capabilities, with some areas identified for enhancing answer generation and contextual integration.
+
 
     ## 🔚 Conclusions and Next Steps
 
-    (Provide conclusions and discuss next steps here)
+      The evaluation of the Gemini LLM using RAG metrics has provided valuable insights into its current capabilities and areas for improvement:
 
-    ## 📚 Additional Resources
+    - **Future Enhancements**: Focusing on improving the depth and specificity of generated answers will be a key area of development.
+    - **Advanced Contextual Integration**: Enhancing the model's ability to more seamlessly integrate retrieved information into coherent responses.
+    - **Continued Monitoring and Evaluation**: Regular evaluations using updated RAG metrics and user feedback will help in continuously improving the model.
 
-    (Provide links to additional resources or documentation)
-    """
+    Overall, the Gemini LLM presents a promising foundation with clear pathways for future enhancements to better meet user needs and expectations.
 
-    st.markdown(markdown_content)
+    """)
 
 def main():
-    st.title("🚀 Gemini LLM Evaluation with RAG Metrics")
-    display_markdown_with_image_placeholders()
+    display_content()
 
 if __name__ == "__main__":
     main()
