@@ -343,8 +343,7 @@ st.set_page_config(page_title="🌱 ESG AI Strategist", page_icon="🌍")
 # Sidebar
 with st.sidebar:
     st.markdown("## ESG Multimodal GPT")
-    st.write("Navigate the path to sustainability with ESG AI Strategist App 🚀💼,where advanced GPT technology meets eco-conscious business strategies  🌱📊.")
-    st.markdown("[TruLens Dashboard](TruLens_Evaluation_Results)", unsafe_allow_html=True) 
+    st.write("Navigate the path to sustainability with ESG AI Strategist App 🚀💼,where advanced GPT technology meets eco-conscious business strategies 🌱📊.")
 
     if st.button("Run TruLens Eval"):
         eval_gemini_completions()
