@@ -1,6 +1,8 @@
 .streamlit/secrets.toml
 pages/🤖_2_ESG_Multimodal_GPT.py
 pages/🤖_3_ESG_Multimodal_GPT.py
+pages/TruLens_Dashboard.py
+pages/TruLens_Evaluations.py
 utils/
 .env
 Tools/

@@ -10,7 +10,7 @@ def load_feedback_functions():
     # Define a groundedness feedback function
     f_groundedness = (
         Feedback(grounded.groundedness_measure_with_cot_reasons)
-        .on(Select.RecordCalls.first.invoke.rets.context)
+        .on(Select.Record.app.combine_documents_chain._call.args.inputs.input_documents[:].page_content)
         .on_output()
         .aggregate(grounded.grounded_statements_aggregator)
     )
@@ -20,8 +20,8 @@ def load_feedback_functions():
     # Question/statement relevance between question and each context chunk.
     f_context_relevance = (
         Feedback(openai.qs_relevance)
-        .on(Select.RecordCalls.first.invoke.args.input)
-        .on(Select.RecordCalls.first.invoke.rets.context)
+        .on_input()
+        .on(Select.Record.app.combine_documents_chain._call.args.inputs.input_documents[:].page_content)
         .aggregate(np.mean)
     )
 

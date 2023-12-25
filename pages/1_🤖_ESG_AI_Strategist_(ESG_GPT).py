@@ -4,7 +4,6 @@ import streamlit as st
 import base64
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
-from langchain.memory import ConversationSummaryBufferMemory
 from langchain.vectorstores import Pinecone
 import re
 import numpy as np
@@ -16,7 +15,7 @@ from pptx.dml.color import RGBColor
 import textwrap
 import io
 from langchain.agents import Tool, initialize_agent
-from langchain.chains import SequentialChain, LLMChain, RetrievalQA
+from langchain.chains import LLMChain, RetrievalQA
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.llms import VertexAI
 from langchain.prompts import PromptTemplate
@@ -30,17 +29,16 @@ from io import BytesIO
 
 from google.oauth2 import service_account
 
-credentials = service_account.Credentials.from_service_account_info(st.secrets.connections_gcs)
+def init_app():
+    os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+    os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+    os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
+    os.environ["PINECONE_ENV"] = st.secrets["PINECONE_ENV"]
 
-pinecone_api_key = st.secrets["PINECONE_API_KEY"]
-pinecone_env = st.secrets["PINECONE_ENV"]
-
-os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
-
-project_id = "vital-future-408219"
-location = "us-central1"
-vertexai.init(project=project_id, location=location, credentials=credentials)
+    project_id = "vital-future-408219"
+    location = "us-central1"
+    credentials = service_account.Credentials.from_service_account_info(st.secrets.connections_gcs)
+    vertexai.init(project=project_id, location=location, credentials=credentials)
 
 class PresentationCreationTool(Tool):
     def __init__(self, name, description):
@@ -213,7 +211,7 @@ image_generation_tool = DalleImageGenerationTool(
 # Function to initialize Pinecone
 def initialize_pinecone():
     index_name = 'esg-index'
-    pinecone.init(api_key=pinecone_api_key, environment=pinecone_env)
+    pinecone.init(api_key=os.environ["PINECONE_API_KEY"], environment=os.environ["PINECONE_ENV"])
 
     if index_name not in pinecone.list_indexes():
         pinecone.create_index(name=index_name, metric='cosine', dimension=1536)
@@ -221,7 +219,6 @@ def initialize_pinecone():
     index = pinecone.Index(index_name)
     return index
 
-# Function to create the agent
 def create_agent():
     index = initialize_pinecone()
     model_name = 'text-embedding-ada-002'
@@ -305,8 +302,6 @@ def generate(image_data, mime_type, combined_prompt):
 
     return result
 
-agent, qa_chain = create_agent()
-
 def generate_response(prompt):
     try:
         response = agent({"input": prompt})
@@ -317,115 +312,98 @@ def generate_response(prompt):
     
     return response["output"]
 
-def eval_gemini_completions():
-    tru = Tru()
-    tru.reset_database()
-    # Initialize TruChain with qa_chain and feedback functions
-    (f_groundedness, f_qa_relevance, f_context_relevance, f_hate, f_violent, f_selfharm, f_maliciousness) = \
-    load_feedback_functions()
-    tru_recorder = TruChain(qa_chain,
-                            app_id='ESG-GPT',
-                            feedbacks=[f_qa_relevance, f_context_relevance, f_groundedness, f_hate, f_violent, 
-                                       f_selfharm, f_maliciousness])
-    # Read questions from a file
-    with open('./eval_questions.txt', 'r') as file:
-        questions = file.readlines()
-    # Iterate over questions and run qr.run for each
-    for question in questions:
-        question = question.strip() 
-        #response = qa_chain.run(question) 
-        tru_recorder(question)
-    tru.run_dashboard(port=8088)
+if __name__ == "__main__":
+    init_app()
+    agent, qa_chain = create_agent()
 
-# Streamlit UI
-st.set_page_config(page_title="🌱 ESG AI Strategist", page_icon="🌍")
+    # Streamlit UI
+    st.set_page_config(page_title="🌱 ESG AI Strategist", page_icon="🌍")
 
-# Sidebar
-with st.sidebar:
-    st.markdown("## ESG Multimodal GPT")
-    st.write("Navigate the path to sustainability with ESG AI Strategist App 🚀💼,where advanced GPT technology meets eco-conscious business strategies 🌱📊.")
-    st.markdown("[TruLens Dashboard](TruLens_Evaluation_Results)", unsafe_allow_html=True) 
+    # Title with emojis
+    st.title("🌱 ESG AI Strategist 🤖")
+    st.caption("🌿🌍 ESG AI Strategist: Revolutionizing sustainable futures with AI-powered insights, guiding companies and decision-makers to embrace and excel in ESG practices and Sustainable Development Goals (SDGs). 💡🚀 Propel your business towards a greener, more responsible tomorrow!")
 
-    if st.button("Run TruLens Eval"):
-        eval_gemini_completions()
-        st.sidebar.success("TruLens eval has been executed successfully!")
+    with st.sidebar:
+        st.markdown("## ESG Multimodal GPT")
+        st.write("Navigate the path to sustainability with ESG AI Strategist App 🚀💼,where advanced GPT technology meets eco-conscious business strategies 🌱📊.")
 
-    # Button to generate PowerPoint slides
-    if st.button('Generate Slides'):
-        if 'history' in st.session_state and st.session_state['history']:
-            conversation_history = " ".join([text for _, text in st.session_state['history']])
-            ppt_file, generated_content = presentation_tool.run(conversation_history)
-            st.sidebar.download_button(
-                label="Download Slides",
-                data=ppt_file,
-                file_name="conversation_presentation.pptx",
-                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
-            )
-            preview_presentation_content(generated_content)
+        # Button to generate PowerPoint slides
+        if st.button('Generate Slides'):
+            if 'history' in st.session_state and st.session_state['history']:
+                conversation_history = " ".join([text for _, text in st.session_state['history']])
+                ppt_file, generated_content = presentation_tool.run(conversation_history)
+                st.sidebar.download_button(
+                    label="Download Slides",
+                    data=ppt_file,
+                    file_name="conversation_presentation.pptx",
+                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                )
+                preview_presentation_content(generated_content)
+            else:
+                st.sidebar.info("No conversation history to generate presentation.")
+
+    # Initialize session state for conversation history and file uploader state
+    if 'history' not in st.session_state:
+        st.session_state['history'] = []
+    if 'show_file_uploader' not in st.session_state:
+        st.session_state['show_file_uploader'] = False
+
+    # Text input for the prompt
+    text_prompt = st.chat_input("Enter your text prompt here:")
+
+    # Define a callback function to update the session state
+    def toggle_file_uploader():
+        st.session_state['show_file_uploader'] = not st.session_state.get('show_file_uploader', False)
+
+    # Checkbox to show/hide the file uploader
+    # Using the callback to update the session state
+    st.checkbox("Analyze and get insights about diagrams, infographics or charts?",
+                value=st.session_state.get('show_file_uploader', False),
+                on_change=toggle_file_uploader)
+
+    # Conditionally display the file uploader based on the checkbox
+    uploaded_file = None
+    if st.session_state.get('show_file_uploader', False):
+        uploaded_file = st.file_uploader("Upload an Image to get insights", type=["png", "jpg", "jpeg"])
+        if uploaded_file is not None:
+            st.image(uploaded_file, caption='', use_column_width=False, width=400)
+
+
+    # Process and generate response
+    if text_prompt:
+        # Get MIME type of the uploaded file and base64 encode the image
+        if uploaded_file is not None:
+            mime_type = uploaded_file.type
+            encoded_image = base64.b64encode(uploaded_file.getvalue()).decode()
+
+        # Combine text prompts (text + speech-to-text)
+        combined_prompt = text_prompt # Add your speech-to-text processing here
+
+        if uploaded_file is not None:
+            # Generate response
+            response = generate(encoded_image, mime_type, combined_prompt)
         else:
-            st.sidebar.info("No conversation history to generate presentation.")
+            response = generate_response(combined_prompt)
 
-# Title with emojis
-st.title("🌱 ESG AI Strategist 🤖")
-st.caption("🌿🌍 ESG AI Strategist: Revolutionizing sustainable futures with AI-powered insights, guiding companies and decision-makers to embrace and excel in ESG practices and Sustainable Development Goals (SDGs). 💡🚀 Propel your business towards a greener, more responsible tomorrow!")
+        # Update conversation history (prepend to display recent conversations at the top)
+        st.session_state['history'].insert(0, (combined_prompt, response))
 
-# Initialize session state for conversation history and file uploader state
-if 'history' not in st.session_state:
-    st.session_state['history'] = []
-if 'show_file_uploader' not in st.session_state:
-    st.session_state['show_file_uploader'] = False
+    # Display conversation history in a scrollable, stylish panel
+    with st.expander("📜 Conversation History", expanded=True):
+        # Reverse the conversation history to show the last AI response at the top
+        for user_text, model_response in reversed(st.session_state['history']):
+            # Styling for human user
+            col1, col2 = st.columns([1, 5])
+            with col1:
+                st.markdown("👤 **You:**")
+            with col2:
+                st.info(user_text)
 
-# Text input for the prompt
-text_prompt = st.chat_input("Enter your text prompt here:")
+            # Styling for AI response
+            col3, col4 = st.columns([1, 5])
+            with col3:
+                st.markdown("🤖 **AI:**")
+            with col4:
+                st.success(model_response)
 
-# Checkbox to show/hide the file uploader
-# Using session state to control its behavior
-show_file_uploader_checkbox = st.checkbox("Analyze and get insights about diagrams, infographics or charts?", value=st.session_state['show_file_uploader'])
-if show_file_uploader_checkbox != st.session_state['show_file_uploader']:
-    st.session_state['show_file_uploader'] = show_file_uploader_checkbox
-
-# Conditionally display the file uploader based on the checkbox
-uploaded_file = None
-if st.session_state['show_file_uploader']:
-    uploaded_file = st.file_uploader("Upload an Image to get insights", type=["png", "jpg", "jpeg"])
-    if uploaded_file is not None:
-        st.image(uploaded_file, caption='', use_column_width=False, width=400)
-
-# Process and generate response
-if text_prompt:
-    # Get MIME type of the uploaded file and base64 encode the image
-    if uploaded_file is not None:
-        mime_type = uploaded_file.type
-        encoded_image = base64.b64encode(uploaded_file.getvalue()).decode()
-
-    # Combine text prompts (text + speech-to-text)
-    combined_prompt = text_prompt # Add your speech-to-text processing here
-
-    if uploaded_file is not None:
-        # Generate response
-        response = generate(encoded_image, mime_type, combined_prompt)
-    else:
-        response = generate_response(combined_prompt)
-
-    # Update conversation history (prepend to display recent conversations at the top)
-    st.session_state['history'].insert(0, (combined_prompt, response))
-
-# Display conversation history in a scrollable, stylish panel
-with st.expander("📜 Conversation History", expanded=True):
-    # Reverse the conversation history to show the last AI response at the top
-    for user_text, model_response in reversed(st.session_state['history']):
-        # Styling for human user
-        col1, col2 = st.columns([1, 5])
-        with col1:
-            st.markdown("👤 **You:**")
-        with col2:
-            st.info(user_text)
-
-        # Styling for AI response
-        col3, col4 = st.columns([1, 5])
-        with col3:
-            st.markdown("🤖 **AI:**")
-        with col4:
-            st.success(model_response)
-
-        st.markdown("---")
+            st.markdown("---")
