@@ -232,7 +232,18 @@ def create_agent():
     conversational_memory = ConversationBufferWindowMemory(
         memory_key='chat_history', input_key='input', output_key='output', k=5, return_messages=True)
 
-    qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vectorstore.as_retriever())
+    prompt_template = PromptTemplate(
+        template="""You are an advanced ESG expert specialized in helping companies, decision makers and CEOs to 
+            adopt ESG practices, policies and sustainabaility strategies. You should answer the questions 
+            based on the given context:
+            {context}
+            Question: {question}
+            Answer: """,
+            input_variables=["context", "question"])
+    
+    qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", 
+                                     retriever=vectorstore.as_retriever(),
+                                     chain_type_kwargs={"prompt": prompt_template})
 
     tools = [Tool(name='ESG Knowledge Base', func=qa.run, description="""Use this tool when the user prompt has 
                   any thing related to ESG, sustainability or sustainability development goals""")]
@@ -244,7 +255,7 @@ def create_agent():
         """
 
     prompt = PromptTemplate(
-    input_variables=["query"],
+    input_variables=["query", ],
     template="{query}")
 
     llm_chain = LLMChain(llm=llm, prompt=prompt)
@@ -271,18 +282,18 @@ def create_agent():
 def generate(image_data, mime_type, combined_prompt):
     
     if image_data is not None:
-        image1 = Part.from_data(data=base64.b64decode(image_data), mime_type=mime_type)
+        imagePart = Part.from_data(data=image_data, mime_type=mime_type)
         model = GenerativeModel("gemini-pro-vision")
-        responses = model.generate_content(
-            [image1, combined_prompt],
+        response = model.generate_content(
+            [imagePart, combined_prompt],
             generation_config={
                 "max_output_tokens": 2048,
                 "temperature": 0.4,
                 "top_p": 1,
                 "top_k": 32
             },
-            stream=True,
         )
+        result = response.candidates[0].content.parts[0].text
     else:
         model = GenerativeModel("gemini-pro")
         responses = model.generate_content(
@@ -293,23 +304,19 @@ def generate(image_data, mime_type, combined_prompt):
                 "top_p": 1,
                 "top_k": 32
             },
-            stream=True,
+            stream=True
         )
-
-    result = ""
-    for response in responses:
-        result += response.candidates[0].content.parts[0].text + "\n"
+        result = ""
+        for response in responses:
+            result += response.candidates[0].content.parts[0].text + "\n"
 
     return result
 
-def generate_response(prompt):
+def generate_response(agent, prompt):
     try:
         response = agent({"input": prompt})
-        # with tru_recorder as recording:
-        #     llm_response = qa_chain.invoke(prompt)
-    except Exception:
-        return "You hit the maximum qouta per minute, please try after one minute."
-    
+    except Exception as e:
+        return f"Error has occurred with the following details: \n{e}"
     return response["output"]
 
 if __name__ == "__main__":
@@ -317,7 +324,7 @@ if __name__ == "__main__":
     agent, qa_chain = create_agent()
 
     # Streamlit UI
-    st.set_page_config(page_title="🌱 ESG AI Strategist", page_icon="🌍")
+    st.set_page_config(page_title="🌱 ESG AI Strategist", page_icon="🌍", layout="wide")
 
     # Title with emojis
     st.title("🌱 ESG AI Strategist 🤖")
@@ -374,22 +381,22 @@ if __name__ == "__main__":
         # Get MIME type of the uploaded file and base64 encode the image
         if uploaded_file is not None:
             mime_type = uploaded_file.type
-            encoded_image = base64.b64encode(uploaded_file.getvalue()).decode()
+            image_data = uploaded_file.getvalue()
 
         # Combine text prompts (text + speech-to-text)
         combined_prompt = text_prompt # Add your speech-to-text processing here
 
         if uploaded_file is not None:
             # Generate response
-            response = generate(encoded_image, mime_type, combined_prompt)
+            response = generate(image_data, mime_type, combined_prompt)
         else:
-            response = generate_response(combined_prompt)
+            response = generate_response(agent, combined_prompt)
 
         # Update conversation history (prepend to display recent conversations at the top)
         st.session_state['history'].insert(0, (combined_prompt, response))
 
     # Display conversation history in a scrollable, stylish panel
-    with st.expander("📜 Conversation History", expanded=True):
+    with st.expander("**📜 Conversation History**", expanded=True):
         # Reverse the conversation history to show the last AI response at the top
         for user_text, model_response in reversed(st.session_state['history']):
             # Styling for human user

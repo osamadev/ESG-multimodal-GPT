@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Set the page config for a custom title and favicon (optional)
-st.set_page_config(page_title="ESG AI Strategist", page_icon="🌿")
+st.set_page_config(page_title="ESG AI Strategist", page_icon="🌿", layout="wide")
 
 def main():
     # App main title

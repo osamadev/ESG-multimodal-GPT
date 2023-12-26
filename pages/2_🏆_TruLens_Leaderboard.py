@@ -4,7 +4,6 @@ import json
 import math
 import sys
 
-# https://github.com/jerryjliu/llama_index/issues/7244:
 asyncio.set_event_loop(asyncio.new_event_loop())
 
 from millify import millify
@@ -30,6 +29,7 @@ import pinecone
 import os
 import random
 from feedback_functions import load_feedback_functions
+from langchain.prompts import PromptTemplate
 
 st.set_page_config(page_title="Leaderboard", layout="wide")
 
@@ -62,7 +62,7 @@ def streamlit_app():
     with st.sidebar:
         if st.button("**Evaluate using Predefined Questions**"):
             filePath = './eval_questions.txt'
-            eval_gemini_completions(filePath)
+            eval_completions_from_questions(filePath)
             st.sidebar.success("Feedback functions have been executed successfully!")
             st.rerun()
 
@@ -174,14 +174,14 @@ def streamlit_app():
 
 
                         
-def eval_gemini_completions(filePath: str):
+def eval_completions_from_questions(filePath: str):
     tru = Tru()
     tru.reset_database()
     # Initialize TruChain with qa_chain and feedback functions
     (f_groundedness, f_qa_relevance, f_context_relevance, f_hate, f_violent, f_selfharm, f_maliciousness) = \
     load_feedback_functions()
     tru_recorder = TruChain(create_coversational_chain(),
-                            app_id='ESG-GPT',
+                            app_id='ESG-Multimodal-GPT',
                             feedbacks=[f_qa_relevance, f_context_relevance, f_groundedness, f_violent])
     
     # Read questions from a file
@@ -199,7 +199,7 @@ def eval_gemini_completions(user_questions):
     (f_groundedness, f_qa_relevance, f_context_relevance, f_hate, f_violent, f_selfharm, f_maliciousness) = \
     load_feedback_functions()
     tru_recorder = TruChain(create_coversational_chain(),
-                            app_id='ESG-GPT',
+                            app_id='ESG-Multimodal-GPT',
                             feedbacks=[f_qa_relevance, f_context_relevance, f_groundedness, f_violent])
     
     # Check if user questions list is empty
@@ -223,10 +223,18 @@ def create_coversational_chain():
 
     llm = VertexAI(model_name="gemini-pro")
 
-    conversational_memory = ConversationBufferWindowMemory(
-        memory_key='chat_history', input_key='input', output_key='output', k=5, return_messages=True)
-
-    qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vectorstore.as_retriever())
+    prompt_template = PromptTemplate(
+        template="""You are an advanced ESG expert specialized in helping companies, decision makers and CEOs to 
+            adopt ESG practices, policies and sustainabaility strategies. You should answer the questions 
+            based on the given context:
+            {context}
+            Question: {question}
+            Answer: """,
+            input_variables=["context", "question"])
+    
+    qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", 
+                                     retriever=vectorstore.as_retriever(),
+                                     chain_type_kwargs={"prompt": prompt_template})
     return qa
 
 def initialize_pinecone():
