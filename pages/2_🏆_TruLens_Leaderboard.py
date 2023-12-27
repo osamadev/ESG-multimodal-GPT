@@ -33,6 +33,10 @@ from langchain.prompts import PromptTemplate
 
 st.set_page_config(page_title="Leaderboard", layout="wide")
 
+if "authentication_status" not in st.session_state \
+    or st.session_state["authentication_status"] == None or st.session_state["authentication_status"] == False:
+    switch_page("Home")
+
 from trulens_eval.ux.add_logo import add_logo_and_style_overrides
 
 # add_logo_and_style_overrides()
@@ -265,5 +269,5 @@ if __name__ == "__main__":
         sys.exit(e.code)
 
     database_url = args.database_url
-
+    
     main()

@@ -6,7 +6,6 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
 from langchain.vectorstores import Pinecone
 import re
-import numpy as np
 import os
 import pinecone
 from pptx import Presentation
@@ -19,13 +18,8 @@ from langchain.chains import LLMChain, RetrievalQA
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.llms import VertexAI
 from langchain.prompts import PromptTemplate
-from dotenv import load_dotenv
-from feedback_functions import load_feedback_functions
-from trulens_eval import TruChain, Feedback, Tru
-from trulens_eval.schema import FeedbackResult
 from openai import OpenAI
-from io import BytesIO
-#load_dotenv()
+from streamlit_extras.switch_page_button import switch_page
 
 from google.oauth2 import service_account
 
@@ -320,6 +314,10 @@ def generate_response(agent, prompt):
     return response["output"]
 
 if __name__ == "__main__":
+    if "authentication_status" not in st.session_state \
+    or st.session_state["authentication_status"] == None or st.session_state["authentication_status"] == False:
+        switch_page("Home")
+
     init_app()
     agent, qa_chain = create_agent()
 

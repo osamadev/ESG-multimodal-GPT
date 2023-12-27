@@ -1,11 +1,10 @@
 import streamlit as st
+import re
+import database as db
 
-# Set the page config for a custom title and favicon (optional)
 st.set_page_config(page_title="ESG AI Strategist", page_icon="🌿", layout="wide")
 
 def main():
-    # App main title
-    st.title("ESG AI Strategist 🌍")
 
     # Use columns to layout the content elegantly
     col1, col2 = st.columns((2, 1))  # Adjust the ratio as needed
@@ -18,14 +17,116 @@ def main():
         🌱🌏 Whether it's navigating the complexities of sustainable practices, crafting robust ESG frameworks, or integrating global SDGs into corporate ethos, ESG AI Strategist is your ultimate ally. With its cutting-edge technology, this tool empowers businesses to make informed, ethical decisions that lead to a sustainable, prosperous future for all.
         """, unsafe_allow_html=True)
 
+                # Additional content or footer
+        st.markdown("""
+        🚀🌟 Embrace the change, drive innovation, and become a leader in the global movement towards a more responsible, eco-friendly, and equitable world.
+        """, unsafe_allow_html=True)
+
     with col2:
         # Optional: Add an image or additional content
         st.image("./images/esg-gpt.png", caption="Empowering Sustainable Futures")
 
-    # Additional content or footer
-    st.markdown("""
-    🚀🌟 Embrace the change, drive innovation, and become a leader in the global movement towards a more responsible, eco-friendly, and equitable world.
-    """, unsafe_allow_html=True)
+def is_email_valid(email):
+    # Simple regex for validating an email
+    pattern = r"^\S+@\S+\.\S+$"
+    return re.match(pattern, email)
+
+def is_password_strong(password):
+    # Check if the password is at least 8 characters
+    if len(password) < 6:
+        return False
+    return True
+
+def is_email_unique(email):
+    # Check if the email is already in the database
+    return not db.is_user_exist(email)
+
+def passwords_match(password, repeated_password):
+    # Check if both passwords match
+    return password == repeated_password
+
+def register_user():
+    with st.form("Register User Form"):
+        st.subheader("Register User")
+        email = st.text_input("Email*")
+        name = st.text_input("Name*")
+        password = st.text_input("Password*", type="password")
+        repeated_password = st.text_input("Repeat Password*", type="password")
+        submit_button = st.form_submit_button("Register")
+
+        if submit_button:
+            if not is_email_valid(email):
+                st.error("Please enter a valid email address.")
+                return False
+            if not name or name == "":
+                st.error("Please enter your name.")
+                return False
+            if not is_password_strong(password):
+                st.error("Password must be at least 8 characters long.")
+                return False
+            if not passwords_match(password, repeated_password):
+                st.error("Passwords do not match.")
+                return False
+            if not is_email_unique(email):
+                st.error("An account with this email already exists.")
+                return False
+            
+            db.insert_user(email, name, password)
+            return True
+    return False
+
+def login():
+    with st.form("login_form"):
+        st.subheader("Login")
+        username = st.text_input("Email")
+        password = st.text_input("Password", type="password")
+        submit_button = st.form_submit_button("Login")
+
+        if submit_button:
+            if username and password:
+                result, name, email = db.login_user(username, password)
+                if result:
+                    st.session_state["authentication_status"] = True
+                    st.session_state["name"] = name
+                    st.session_state["email"] = email
+                    st.rerun()
+                else:
+                    # st.session_state["authentication_status"] = False
+                    st.error("Incorrect username or password")
+            else:
+                st.error("Please enter both username and password")
+
+def logout():
+    st.session_state["authentication_status"] = None
+    st.session_state["name"] = None
+    st.session_state["email"] = None
+    st.rerun()
 
 if __name__ == "__main__":
-    main()
+    st.title("ESG AI Strategist (ESG Multimodal GPT)🌍")
+    st.caption("🌿🌍 ESG AI Strategist: Revolutionizing sustainable futures with AI-powered insights, guiding companies and decision-makers to embrace and excel in ESG practices and Sustainable Development Goals (SDGs). 💡🚀 Propel your business towards a greener, more responsible tomorrow!")
+
+    # Initialize session state for authentication
+    if "authentication_status" not in st.session_state:
+        st.session_state["authentication_status"] = None
+
+    # Sidebar content
+    if st.session_state.get("authentication_status"):
+        st.sidebar.subheader(f"Welcome, {st.session_state.get('name', '')}")
+        if st.sidebar.button("Logout"):
+            logout()  
+            st.rerun()
+
+    # Main page content
+    if st.session_state["authentication_status"]:
+        main() 
+    else:
+        # Authentication (Login/SignUp) options
+        menu = ["Login", "SignUp"]
+        choice = st.selectbox("**Select Login or SignUp from the below drop down list**", menu)
+        if choice == "Login":
+            st.markdown(f"**If you don't have an account, please select the sign-up option from the dropdown list to register.**")
+            login()
+        elif choice == "SignUp":
+            if register_user():
+                st.success("Your account has been registered successfully!")

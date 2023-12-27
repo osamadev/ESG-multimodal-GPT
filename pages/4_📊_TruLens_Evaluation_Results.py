@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_extras.switch_page_button import switch_page
 
 # Streamlit page configuration
 st.set_page_config(page_title="📊 Gemini LLM Evaluation with RAG Metrics using TruLens Evals 🌟", layout="wide")
@@ -77,4 +78,7 @@ def main():
     display_content()
 
 if __name__ == "__main__":
+    if "authentication_status" not in st.session_state \
+    or st.session_state["authentication_status"] == None or st.session_state["authentication_status"] == False:
+        switch_page("Home")
     main()

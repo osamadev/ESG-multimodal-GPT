@@ -39,12 +39,17 @@ from trulens_eval.ux.components import draw_tool_info
 from trulens_eval.ux.components import render_selector_markdown
 from trulens_eval.ux.components import write_or_json
 from trulens_eval.ux.styles import cellstyle_jscode
+from streamlit_extras.switch_page_button import switch_page
 import os
 from google.oauth2 import service_account
 import vertexai
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 st.set_page_config(page_title="Evaluations", layout="wide")
+
+if "authentication_status" not in st.session_state \
+    or st.session_state["authentication_status"] == None or st.session_state["authentication_status"] == False:
+    switch_page("Home")
 
 def init_app():
     os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]

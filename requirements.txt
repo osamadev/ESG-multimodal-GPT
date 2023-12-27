@@ -406,3 +406,4 @@ youtube-transcript-api==0.6.1
 zipp==3.17.0
 streamlit
 llama-index
+deta
