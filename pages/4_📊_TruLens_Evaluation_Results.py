@@ -6,47 +6,42 @@ st.set_page_config(page_title="📊 Gemini LLM Evaluation with RAG Metrics using
 
 def display_content():
     st.markdown("""
-    # 📊 Gemini LLM Evaluation using TruLens Evals based on RAG triad of metrics
+# 📊 Gemini LLM Evaluation using TruLens Evals based on RAG triad of metrics
+This document presents the evaluation results of the Gemini Language Model (LLM) using TruLens Evals based on the Retrieval Augmented Generation (RAG) triad of metrics. These metrics are crucial for assessing the relevancy of the model's answers to user prompts.
 
-    This document presents the evaluation results of the Gemini Language Model (LLM) using TruLens Evals based on the Retrieval Augmented Generation (RAG) triad of metrics. These metrics are crucial for assessing the relevancy of the model's answers to user prompts.
+## Overview
+RAG combines retrieval and language generation for accurate, relevant responses. The evaluation emphasizes three critical metrics:
 
-    ## 📊 Overview
+### 🔍 Evaluation Metrics
+#### 1️⃣ Answer Relevancy (Quality of Answer Generation)
+- **Description:** Assesses the precision and appropriateness of generated answers based on retrieved information.
+- **Importance:** Key for response utility and reliability, ensuring answers directly address the query's intent.
 
-    The RAG approach combines the power of retrieval and language generation to provide more accurate and relevant responses. This evaluation focuses on three key metrics:
+#### 2️⃣ Context Relevancy (Relevance of Retrieved Documents)
+- **Description:** Measures the pertinence of documents retrieved in response to a query.
+- **Importance:** Critical for grounding responses in relevant context, ensuring foundational information is pertinent.
 
-    1. **Relevance of Retrieved Documents**: Measures how relevant the retrieved documents are to the user prompt.
-    2. **Quality of Answer Generation**: Assesses the quality of answers generated based on the retrieved documents.
-    3. **Overall Response Coherence**: Evaluates the overall coherence and context-awareness of the final response.
+#### 3️⃣ Groundedness (Overall Response Coherence)
+- **Description:** Evaluates the integration of retrieved information into coherent, context-aware responses.
+- **Importance:** Guarantees that the response is contextually appropriate and coherent, blending accuracy with relevancy.
 
-    ## 🔍 Evaluation Metrics
-
-    ### 1️⃣ Relevance of Retrieved Documents
-    - **Description**: Analyzes the relevance of documents retrieved by the model in response to a query.
-    - **Importance**: Ensures that the foundational information used for generating responses is accurate and pertinent.
-
-    ### 2️⃣ Quality of Answer Generation
-    - **Description**: Assesses the accuracy and appropriateness of the answers generated based on the retrieved information.
-    - **Importance**: Critical for ensuring the utility and reliability of the responses.
-
-    ### 3️⃣ Overall Response Coherence
-    - **Description**: Evaluates how well the generated response integrates the retrieved information coherently.
-    - **Importance**: Ensures that the response is not only accurate but also contextually appropriate and coherent.
-    """)
+These metrics ensure responses are not only factually accurate but also contextually relevant and grounded in coherent, reliable information.
+""")
 
     st.markdown("## 📸 Dashboard Screenshots")
-    image_paths = [
-        "./images/trulens_eval_dashboard.png",
-        "./images/truelens_eval_01.png",
-        "./images/truelens_eval_02.png",
-        "./images/truelens_eval_03.png",
-        "./images/truelens_eval_04.png",
-        "./images/truelens_eval_05.png",
-        "./images/truelens_eval_06.png"
-    ]
+    image_paths = {
+        "./images/Trulens_Leaderboard.png": "TruLens Leaderboard for ESG Multimodal GPT",
+        "./images/TruLens_Evaluations_01.png": "TruLens Evaluation Records",
+        "./images/Evaluation_Feedback_Functions.png": "Evaluation Feedback Functions",
+        "./images/TruLens_Evaluations_02.png": "TruLens Evaluation Relevancy Scores",
+        "./images/TruLens_Evaluations_03.png": "Sample Record Details (1)",
+        "./images/TruLens_Evaluations_04.png": "Sample Record Details (2)",
+        "./images/TruLens_Evaluations_06.png" : "Evaluation Results of RAG Triad of Metrics"
+    }
 
-    for idx, path in enumerate(image_paths, start=1):
-        st.markdown(f"### Screenshot {idx}")
-        st.image(path, use_column_width=True)
+    for image_path, image_title in image_paths.items():
+        st.markdown(f"### {image_title}")
+        st.image(image_path, use_column_width=True)
         st.markdown("---")
 
     st.markdown("""

@@ -6,8 +6,7 @@ st.set_page_config(page_title="ESG AI Strategist", page_icon="🌿", layout="wid
 
 def main():
 
-    # Use columns to layout the content elegantly
-    col1, col2 = st.columns((2, 1))  # Adjust the ratio as needed
+    col1, col2 = st.columns((2, 1))  
 
     with col1:
         # Detailed description
@@ -17,10 +16,31 @@ def main():
         🌱🌏 Whether it's navigating the complexities of sustainable practices, crafting robust ESG frameworks, or integrating global SDGs into corporate ethos, ESG AI Strategist is your ultimate ally. With its cutting-edge technology, this tool empowers businesses to make informed, ethical decisions that lead to a sustainable, prosperous future for all.
         """, unsafe_allow_html=True)
 
-                # Additional content or footer
+        # Additional content or footer
         st.markdown("""
         🚀🌟 Embrace the change, drive innovation, and become a leader in the global movement towards a more responsible, eco-friendly, and equitable world.
         """, unsafe_allow_html=True)
+
+        # Key features of the custom multimodal GPT
+        key_features = """
+        - Leverages LLMs (Gemini pro & Gemini Pro Vision) to redefine sustainability in the corporate sector.
+        - Provides in-depth insights for ESG practices and sustainable development goals.
+        - Backed by Gemini Pro and Gemini Pro Vision for multimodal capabilities.
+        - Analyzes infographics to understand key areas and generate valuable insights.
+        - Generates PowerPoint presentations from AI conversations.
+        - Features 'TruLens Leaderboard' right in the app to show RAG triad of metrics (answer relevancy, context relevancy and groundedness) in a straemlined way.
+        - Offers detailed analysis of user inputs and AI responses.
+        - Evaluates performance of Gemini completions using TruLens based on both predefined questions and personalized conversation history.
+        """
+
+        with st.expander("**Key Features of ESG AI Strategist GPT**", expanded=True):
+            st.markdown(key_features)
+
+        st.subheader("App Demo")
+
+        st.video("https://www.youtube.com/watch?v=M1mBjVC3YMQ")
+
+        
 
     with col2:
         # Optional: Add an image or additional content
@@ -62,7 +82,7 @@ def register_user():
                 st.error("Please enter your name.")
                 return False
             if not is_password_strong(password):
-                st.error("Password must be at least 8 characters long.")
+                st.error("Password must be at least 6 characters long.")
                 return False
             if not passwords_match(password, repeated_password):
                 st.error("Passwords do not match.")
@@ -129,4 +149,4 @@ if __name__ == "__main__":
             login()
         elif choice == "SignUp":
             if register_user():
-                st.success("Your account has been registered successfully!")
+                st.success("Your account has been registered successfully! You can use your email and password to access the app.", icon="✅")

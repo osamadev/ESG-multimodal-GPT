@@ -6,3 +6,28 @@
 
 Embrace the change, drive innovation, and become a leader in the global movement towards a more responsible, eco-friendly, and equitable world. 🚀🌟
 
+### Key Features of ESG AI Strategist GPT
+
+- Leveraging LLMs (Gemini Pro & Gemini Pro Vision) to redefine sustainability in the corporate sector.
+- Provides in-depth insights for ESG practices and sustainable development goals.
+- Backed by Gemini Pro and Gemini Pro Vision for multimodal capabilities.
+- Analyzes infographics to understand key areas and generate valuable insights.
+- Generates PowerPoint presentations from AI conversations.
+- Features 'TruLens Leaderboard' right in the app to show RAG triad of metrics (answer relevancy, context relevancy, and groundedness) in a streamlined way.
+- Offers detailed analysis of user inputs and AI responses.
+- Evaluates performance of Gemini completions using TruLens based on both predefined questions and personalized conversation history.
+
+
+### App Demo
+
+To see the ESG AI Strategist GPT in action, check out the following link. This app showcases the key features and capabilities of the application, providing a hands-on experience with its functionalities.
+
+[Explore the app](https://esg-multimodal-gpt.streamlit.app/)
+
+### Demo Highlights
+- Explore how the app leverages LLMs for sustainability insights.
+- See the multimodal capabilities in action, including infographic analysis.
+- Discover the TruLens Leaderboard and its metrics visualization.
+
+_For an optimal experience, we recommend viewing the demo on a desktop browser._
+
