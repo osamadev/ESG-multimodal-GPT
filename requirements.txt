@@ -407,3 +407,4 @@ zipp==3.17.0
 streamlit
 llama-index
 deta
+httpx-oauth
