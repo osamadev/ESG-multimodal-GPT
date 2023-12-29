@@ -167,7 +167,7 @@ def login_with_google():
                         st.write(f"""<b>
                         Login session has ended,
                         please <a target="_self" href="{authorization_url}">
-                        login</a> again.</b><br><br>""")
+                        login</a> again.</b><br><br>""", unsafe_allow_html=True)
                 else:
                     st.session_state["token"] = token
                     user_id, user_email = asyncio.run(
