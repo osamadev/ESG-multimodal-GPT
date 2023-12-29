@@ -111,6 +111,7 @@ def login_google_oauth():
             st.session_state["token"] = result["token"]
             st.session_state["authentication_status"] = True
             st.session_state["email"] = email
+            st.rerun()
 
 def login_github_oauth():
     CLIENT_ID = st.secrets["GitHub_OAuth_Client_ID"]
@@ -141,3 +142,4 @@ def login_github_oauth():
                 st.session_state["token"] = result["token"]
                 st.session_state["authentication_status"] = True
                 st.session_state["email"] = email
+                st.rerun()
