@@ -143,7 +143,7 @@ def login_with_google():
         try:
             code = st.experimental_get_query_params()['code']
         except:
-            st.markdown(f"""<b>
+            st.write(f"""<b>
                 You can login directly using your <a target="_self"
                 href="{authorization_url}">Google Account</a></b><br><br>""",
             unsafe_allow_html=True)
@@ -155,7 +155,7 @@ def login_with_google():
                                        redirect_uri=redirect_uri,
                                        code=code))
             except:
-                st.markdown(f"""<b>
+                st.write(f"""<b>
                 You can login directly using your <a target="_self"
                 href="{authorization_url}">Google Account</a></b> 
                 <i class="fab fa-google" style="color:#DB4437;"></i><br><br>""",
@@ -164,7 +164,7 @@ def login_with_google():
                 # Check if token has expired:
                 if token.is_expired():
                     if token.is_expired():
-                        st.markdown(f"""<b>
+                        st.write(f"""<b>
                         Login session has ended,
                         please <a target="_self" href="{authorization_url}">
                         login</a> again.</b><br><br>""")
