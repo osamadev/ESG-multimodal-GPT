@@ -132,8 +132,7 @@ if __name__ == "__main__":
         google_login_col, login_text_col, github_login_col = st.columns([4,1,4])
         with google_login_col:
             login_google_oauth()
-        # with login_text_col:
-        #     st.markdown("<div style='font-weight:bold; text-align:center;'>OR</div>", unsafe_allow_html=True)
+
         with github_login_col:
             login_github_oauth()
 

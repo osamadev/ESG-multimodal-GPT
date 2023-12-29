@@ -76,6 +76,7 @@ def login_with_google():
                                   token=token['access_token'])
                     )
                     st.session_state["authentication_status"] = True
+                    st.session_state["name"] = user_email
                     st.session_state["email"] = user_email
 
 def login_google_oauth():
@@ -110,6 +111,7 @@ def login_google_oauth():
             email = payload["email"]
             st.session_state["token"] = result["token"]
             st.session_state["authentication_status"] = True
+            st.session_state["name"] = email
             st.session_state["email"] = email
             st.rerun()
 
@@ -121,7 +123,6 @@ def login_github_oauth():
     REDIRECT_URI = st.secrets["GitHub_OAuth_Redirect_URI"]
 
     if "authentication_status" not in st.session_state or st.session_state["authentication_status"] == None:
-        # create a button to start the OAuth2 flow
         oauth2 = OAuth2Component(CLIENT_ID, CLIENT_SECRET, AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT, TOKEN_ENDPOINT, None)
         result = oauth2.authorize_button(
             name="Continue with GitHub",
@@ -137,9 +138,21 @@ def login_github_oauth():
             access_token = result["token"]["access_token"]
             headers = {"Authorization": f"token {access_token}"}
             user_data_response = requests.get("https://api.github.com/user/emails", headers=headers)
+
             if user_data_response.ok:
-                email = user_data_response.json()[0]["email"]
-                st.session_state["token"] = result["token"]
-                st.session_state["authentication_status"] = True
-                st.session_state["email"] = email
-                st.rerun()
+                emails = user_data_response.json()
+                primary_email = next((email for email in emails if email['primary']), None)
+
+                if primary_email:
+                    email = primary_email["email"]
+                    st.session_state["token"] = result["token"]
+                    st.session_state["authentication_status"] = True
+                    st.session_state["email"] = email
+                else:
+                    st.error("Primary email not found. Please check your GitHub email settings.")
+                    st.write("Response:", emails)  # Debugging line
+            else:
+                st.error("Failed to retrieve user data.")
+                st.write("Response Status Code:", user_data_response.status_code)  # Debugging line
+
+            st.rerun()
