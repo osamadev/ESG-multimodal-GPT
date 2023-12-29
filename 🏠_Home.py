@@ -128,8 +128,13 @@ if __name__ == "__main__":
     st.title("ESG AI Strategist (ESG Multimodal GPT)🌍")
     st.caption("🌿🌍 ESG AI Strategist: Revolutionizing sustainable futures with AI-powered insights, guiding companies and decision-makers to embrace and excel in ESG practices and Sustainable Development Goals (SDGs). 💡🚀 Propel your business towards a greener, more responsible tomorrow!")
 
-    login_google_oauth()
-    
+    google_login_col, login_text_col, github_login_col = st.columns([4,1,4])
+    with google_login_col:
+        login_google_oauth()
+    # with login_text_col:
+    #     st.markdown("<div style='font-weight:bold; text-align:center;'>OR</div>", unsafe_allow_html=True)
+    with github_login_col:
+        login_github_oauth()
     # Initialize session state for authentication
     if "authentication_status" not in st.session_state:
         st.session_state["authentication_status"] = None
@@ -149,7 +154,7 @@ if __name__ == "__main__":
         menu = ["Login", "SignUp"]
         choice = st.selectbox("**You can also select to Login or SignUp from the below drop down list**", menu)
         if choice == "Login":
-            st.markdown(f"**If you don't have an account, please select the sign-up option from the dropdown list to register.**")
+            st.markdown(f"**If you don't have an account, please select the sign-up option from the dropdown list to register with your email address.**")
             login()
         elif choice == "SignUp":
             if register_user():

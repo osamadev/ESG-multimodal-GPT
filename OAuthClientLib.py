@@ -1,5 +1,6 @@
 import base64
 import json
+import requests
 import streamlit as st
 import asyncio
 from httpx_oauth.clients.google import GoogleOAuth2
@@ -27,9 +28,9 @@ async def get_email(client,
 
 
 def login_with_google():
-    client_id = st.secrets["OAuth_Client_ID"]
-    client_secret = st.secrets["OAuth_Client_Secret"]
-    redirect_uri = st.secrets["OAuth_Redirect_URI"]
+    client_id = st.secrets["Google_OAuth_Client_ID"]
+    client_secret = st.secrets["Google_OAuth_Client_Secret"]
+    redirect_uri = st.secrets["Google_OAuth_Redirect_URI"]
 
     client = GoogleOAuth2(client_id, client_secret)
     authorization_url = asyncio.run(
@@ -78,12 +79,12 @@ def login_with_google():
                     st.session_state["email"] = user_email
 
 def login_google_oauth():
-    CLIENT_ID = st.secrets["OAuth_Client_ID"]
-    CLIENT_SECRET = st.secrets["OAuth_Client_Secret"]
-    AUTHORIZE_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/auth"
-    TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token"
-    REVOKE_ENDPOINT = "https://oauth2.googleapis.com/revoke"
-    REDIRECT_URI = st.secrets["OAuth_Redirect_URI"]
+    CLIENT_ID = st.secrets["Google_OAuth_Client_ID"]
+    CLIENT_SECRET = st.secrets["Google_OAuth_Client_Secret"]
+    AUTHORIZE_ENDPOINT = st.secrets["Google_AUTHORIZE_ENDPOINT"]
+    TOKEN_ENDPOINT = st.secrets["Google_TOKEN_ENDPOINT"]
+    REVOKE_ENDPOINT = st.secrets["Google_REVOKE_ENDPOINT"]
+    REDIRECT_URI = st.secrets["Google_OAuth_Redirect_URI"]
 
     if "authentication_status" not in st.session_state or st.session_state["authentication_status"] == None:
         # create a button to start the OAuth2 flow
@@ -95,7 +96,7 @@ def login_google_oauth():
             scope="openid email profile",
             key="google",
             extras_params={"prompt": "consent", "access_type": "offline"},
-            use_container_width=False,
+            use_container_width=True,
         )
 
         if result:
@@ -112,3 +113,33 @@ def login_google_oauth():
             st.session_state["email"] = email
             st.rerun()
 
+def login_github_oauth():
+    CLIENT_ID = st.secrets["GitHub_OAuth_Client_ID"]
+    CLIENT_SECRET = st.secrets["GitHub_OAuth_Client_Secret"]
+    AUTHORIZE_ENDPOINT = st.secrets["GitHub_AUTHORIZE_ENDPOINT"]
+    TOKEN_ENDPOINT = st.secrets["GitHub_TOKEN_ENDPOINT"]
+    REDIRECT_URI = st.secrets["GitHub_OAuth_Redirect_URI"]
+
+    if "authentication_status" not in st.session_state or st.session_state["authentication_status"] == None:
+        # create a button to start the OAuth2 flow
+        oauth2 = OAuth2Component(CLIENT_ID, CLIENT_SECRET, AUTHORIZE_ENDPOINT, TOKEN_ENDPOINT, TOKEN_ENDPOINT, None)
+        result = oauth2.authorize_button(
+            name="Continue with GitHub",
+            icon="https://github.com/favicon.ico",
+            redirect_uri=REDIRECT_URI,
+            scope="user:email",
+            key="github",
+            extras_params={},
+            use_container_width=True,
+        )
+
+        if result:
+            access_token = result["token"]["access_token"]
+            headers = {"Authorization": f"token {access_token}"}
+            user_data_response = requests.get("https://api.github.com/user/emails", headers=headers)
+            if user_data_response.ok:
+                email = user_data_response.json()[0]["email"]
+                st.session_state["token"] = result["token"]
+                st.session_state["authentication_status"] = True
+                st.session_state["email"] = email
+                st.rerun()
