@@ -17,7 +17,6 @@ def main():
         🌱🌏 Whether it's navigating the complexities of sustainable practices, crafting robust ESG frameworks, or integrating global SDGs into corporate ethos, ESG AI Strategist is your ultimate ally. With its cutting-edge technology, this tool empowers businesses to make informed, ethical decisions that lead to a sustainable, prosperous future for all.
         """, unsafe_allow_html=True)
 
-        # Additional content or footer
         st.markdown("""
         🚀🌟 Embrace the change, drive innovation, and become a leader in the global movement towards a more responsible, eco-friendly, and equitable world.
         """, unsafe_allow_html=True)
@@ -44,7 +43,6 @@ def main():
         
 
     with col2:
-        # Optional: Add an image or additional content
         st.image("./images/esg-gpt.png", caption="Empowering Sustainable Futures")
 
 def is_email_valid(email):
@@ -53,7 +51,7 @@ def is_email_valid(email):
     return re.match(pattern, email)
 
 def is_password_strong(password):
-    # Check if the password is at least 8 characters
+    # Check if the password is at least 6 characters
     if len(password) < 6:
         return False
     return True
