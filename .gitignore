@@ -184,3 +184,4 @@ Tools/
 update_database.py
 authutil.py
 styles.py
+pages/authenticate.py

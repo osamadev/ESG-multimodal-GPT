@@ -1,6 +1,9 @@
 import streamlit as st
 import re
 import database as db
+import asyncio
+from httpx_oauth.clients.google import GoogleOAuth2
+from OAuthClientLib import *
 
 st.set_page_config(page_title="ESG AI Strategist", page_icon="🌿", layout="wide")
 
@@ -95,6 +98,7 @@ def register_user():
             return True
     return False
 
+
 def login():
     with st.form("login_form"):
         st.subheader("Login")
@@ -122,9 +126,62 @@ def logout():
     st.session_state["email"] = None
     st.rerun()
 
+def login_with_google():
+    client_id = st.secrets["OAuth_Client_ID"]
+    client_secret = st.secrets["OAuth_Client_Secret"]
+    redirect_uri = st.secrets["OAuth_Redirect_URI"]
+
+    client = GoogleOAuth2(client_id, client_secret)
+    authorization_url = asyncio.run(
+        write_authorization_url(client=client,
+                                redirect_uri=redirect_uri)
+    )
+
+    st.session_state["token"] = None
+    if ("authentication_status" not in st.session_state or st.session_state["authentication_status"] is None) \
+            and st.session_state["token"] is None:
+        try:
+            code = st.experimental_get_query_params()['code']
+        except:
+            st.markdown(f"""<b>
+                You can login directly using your <a target="_self"
+                href="{authorization_url}">Google Account</a></b><br><br>""",
+            unsafe_allow_html=True)
+        else:
+            # Verify token is correct:
+            try:
+                token = asyncio.run(
+                    write_access_token(client=client,
+                                       redirect_uri=redirect_uri,
+                                       code=code))
+            except:
+                st.markdown(f"""<b>
+                You can login directly using your <a target="_self"
+                href="{authorization_url}">Google Account</a></b> 
+                <i class="fab fa-google" style="color:#DB4437;"></i><br><br>""",
+            unsafe_allow_html=True)
+            else:
+                # Check if token has expired:
+                if token.is_expired():
+                    if token.is_expired():
+                        st.markdown(f"""<b>
+                        Login session has ended,
+                        please <a target="_self" href="{authorization_url}">
+                        login</a> again.</b><br><br>""")
+                else:
+                    st.session_state["token"] = token
+                    user_id, user_email = asyncio.run(
+                        get_email(client=client,
+                                  token=token['access_token'])
+                    )
+                    st.session_state["authentication_status"] = True
+                    st.session_state["email"] = user_email
+
 if __name__ == "__main__":
     st.title("ESG AI Strategist (ESG Multimodal GPT)🌍")
     st.caption("🌿🌍 ESG AI Strategist: Revolutionizing sustainable futures with AI-powered insights, guiding companies and decision-makers to embrace and excel in ESG practices and Sustainable Development Goals (SDGs). 💡🚀 Propel your business towards a greener, more responsible tomorrow!")
+
+    login_with_google()
 
     # Initialize session state for authentication
     if "authentication_status" not in st.session_state:
@@ -132,7 +189,7 @@ if __name__ == "__main__":
 
     # Sidebar content
     if st.session_state.get("authentication_status"):
-        st.sidebar.subheader(f"Welcome, {st.session_state.get('name', '')}")
+        st.sidebar.subheader(f"""Welcome, {st.session_state.get('name', st.session_state["email"])}""")
         if st.sidebar.button("Logout"):
             logout()  
             st.rerun()
@@ -143,7 +200,7 @@ if __name__ == "__main__":
     else:
         # Authentication (Login/SignUp) options
         menu = ["Login", "SignUp"]
-        choice = st.selectbox("**Select Login or SignUp from the below drop down list**", menu)
+        choice = st.selectbox("**You can also select to Login or SignUp from the below drop down list**", menu)
         if choice == "Login":
             st.markdown(f"**If you don't have an account, please select the sign-up option from the dropdown list to register.**")
             login()
